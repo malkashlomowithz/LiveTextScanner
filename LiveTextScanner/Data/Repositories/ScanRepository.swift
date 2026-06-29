@@ -25,7 +25,14 @@ final class ScanRepository: ScanRepositoryProtocol {
         sourceRegions: [String],
         thumbnailData: Data?
     ) async throws {
+        var descriptor = FetchDescriptor<ScanRecord>(
+            sortBy: [SortDescriptor(\.number, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        let nextNumber = (try context.fetch(descriptor).first?.number ?? 0) + 1
+
         let record = ScanRecord(
+            number: nextNumber,
             date: date,
             text: text,
             thumbnailData: thumbnailData,

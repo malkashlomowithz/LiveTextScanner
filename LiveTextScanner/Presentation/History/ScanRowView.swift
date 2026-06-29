@@ -12,12 +12,18 @@ struct ScanRowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("#\(record.number)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(record.date, format: .dateTime.day().month().year().hour().minute())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Text(record.text)
                 .lineLimit(2)
                 .font(.body)
-            Text(record.date, format: .dateTime.day().month().year().hour().minute())
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
         .padding(.vertical, 2)
     }

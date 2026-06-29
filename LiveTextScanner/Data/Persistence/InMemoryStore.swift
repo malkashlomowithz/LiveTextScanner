@@ -22,8 +22,10 @@ final class InMemoryStore: ScanRepositoryProtocol {
         sourceRegions: [String],
         thumbnailData: Data?
     ) async throws {
+        let nextNumber = (records.map(\.number).max() ?? 0) + 1
         records.append(
             ScanRecord(
+                number: nextNumber,
                 date: date,
                 text: text,
                 thumbnailData: thumbnailData,

@@ -51,9 +51,9 @@ struct CameraView: View {
     }
 
     private var overlayLayer: some View {
-        TextOverlayView(regions: viewModel.currentCapture?.regions ?? [])
+        TextOverlayView(regions: viewModel.currentRegions)
             .ignoresSafeArea()
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: viewModel.currentCapture?.id)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: viewModel.currentRegions)
     }
 
     private var controlsLayer: some View {
@@ -66,6 +66,8 @@ struct CameraView: View {
                 .padding(24)
                 .background(.ultraThinMaterial, in: Circle())
                 .padding(.bottom, 48)
+                .disabled(viewModel.currentRegions.isEmpty)
+                .opacity(viewModel.currentRegions.isEmpty ? 0.5 : 1)
         }
     }
 }
