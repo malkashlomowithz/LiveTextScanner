@@ -11,12 +11,14 @@ struct ContentView: View {
     @Environment(AppDependencyContainer.self) private var container
 
     var body: some View {
-        TabView {
+        NavigationStack {
             CameraView(viewModel: container.cameraViewModel)
-                .tabItem { Label("Scan", systemImage: "viewfinder") }
-
-            HistoryView(viewModel: container.historyViewModel)
-                .tabItem { Label("History", systemImage: "clock") }
+                .navigationDestination(for: AppRoute.self) { route in
+                    switch route {
+                    case .history:
+                        HistoryView(viewModel: container.historyViewModel)
+                    }
+                }
         }
     }
 }

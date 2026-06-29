@@ -40,6 +40,10 @@ final class HistoryViewModel {
         }
     }
 
+    func delete(_ record: ScanRecord) {
+        Task { await delete(id: record.id) }
+    }
+
     private func delete(id: UUID) async {
         do {
             try await historyUseCase.delete(id: id)

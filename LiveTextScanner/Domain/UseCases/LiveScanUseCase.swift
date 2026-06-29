@@ -15,8 +15,10 @@ final class LiveScanUseCase {
 
     /// Per-frame stream of currently detected regions (possibly empty).
     /// Drives the live overlay so highlight boxes follow the camera.
-    let liveRegions: AsyncStream<[TextRegion]>
-    private let liveRegionsContinuation: AsyncStream<[TextRegion]>.Continuation
+    /// Recreated on every `start()` — read it *after* calling `start()`.
+    private(set) var liveRegions: AsyncStream<[TextRegion]>
+    private var liveRegionsContinuation: AsyncStream<[TextRegion]>.Continuation
+    private var producerTask: Task<Void, Never>?
 
     init(
         frameProvider: some CameraFrameProviderProtocol,
@@ -30,45 +32,50 @@ final class LiveScanUseCase {
     }
 
     /// Starts the camera and returns a stream of stable, deduplicated captures.
-    /// Iterate the stream inside a `Task` in the caller; cancel that task to stop scanning.
+    /// Iterate the stream inside a `Task` in the caller; call `stop()` to end scanning.
     /// For the live overlay, iterate `liveRegions` in a separate task.
     func start() async -> AsyncStream<ScanCapture> {
-        await frameProvider.start()
+        // Tear down any prior session so a fresh start is fully independent.
+        producerTask?.cancel()
+
+        let frames = await frameProvider.start()
         deduplicator.reset()
+
+        // AsyncStream is single-use, so recreate both pipelines per session.
+        (liveRegions, liveRegionsContinuation) = AsyncStream<[TextRegion]>.makeStream()
+        let (capturesStream, capturesContinuation) = AsyncStream<ScanCapture>.makeStream()
 
         // Extract locals so the closure captures value-typed copies where possible.
         let recognizer = self.recognizer
         let deduplicator = self.deduplicator
-        let frames = frameProvider.frames
         let liveRegionsContinuation = self.liveRegionsContinuation
 
-        return AsyncStream { continuation in
-            Task {
-                for await pixelBuffer in frames {
-                    guard !Task.isCancelled else {
-                        continuation.finish()
-                        return
+        producerTask = Task {
+            for await pixelBuffer in frames {
+                if Task.isCancelled { break }
+                do {
+                    let regions = try await recognizer.recognizeText(in: pixelBuffer)
+                    // Emit every frame's regions so the overlay tracks the camera —
+                    // including empty results, which clear stale highlight boxes.
+                    liveRegionsContinuation.yield(regions)
+                    guard !regions.isEmpty else { continue }
+                    let capture = ScanCapture(regions: regions)
+                    if let stable = deduplicator.process(capture) {
+                        capturesContinuation.yield(stable)
                     }
-                    do {
-                        let regions = try await recognizer.recognizeText(in: pixelBuffer)
-                        // Emit every frame's regions so the overlay tracks the camera —
-                        // including empty results, which clear stale highlight boxes.
-                        liveRegionsContinuation.yield(regions)
-                        guard !regions.isEmpty else { continue }
-                        let capture = ScanCapture(regions: regions)
-                        if let stable = deduplicator.process(capture) {
-                            continuation.yield(stable)
-                        }
-                    } catch {
-                        // Non-fatal — skip frames that fail recognition and keep streaming.
-                    }
+                } catch {
+                    // Non-fatal — skip frames that fail recognition and keep streaming.
                 }
-                continuation.finish()
             }
+            capturesContinuation.finish()
         }
+
+        return capturesStream
     }
 
     func stop() {
+        // Finishing the frames stream lets the producer drain any buffered
+        // frames and exit naturally, which also finishes the captures stream.
         frameProvider.stop()
         liveRegionsContinuation.yield([])
     }

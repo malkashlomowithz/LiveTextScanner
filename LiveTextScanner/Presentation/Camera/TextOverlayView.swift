@@ -13,12 +13,16 @@ import SwiftUI
 struct TextOverlayView: View {
     let regions: [TextRegion]
 
+    private let cornerRadius: CGFloat = 6
+    private let highlightColor = Color("SecondaryColor")
+
     var body: some View {
         Canvas { context, size in
             for region in regions {
                 let rect = viewRect(for: region.boundingBox, in: size)
-                context.fill(Path(rect), with: .color(.yellow.opacity(0.15)))
-                context.stroke(Path(rect), with: .color(.yellow), lineWidth: 2)
+                let path = Path(roundedRect: rect, cornerRadius: cornerRadius)
+                context.fill(path, with: .color(highlightColor.opacity(0.18)))
+                context.stroke(path, with: .color(highlightColor), lineWidth: 1.5)
             }
         }
         .allowsHitTesting(false)

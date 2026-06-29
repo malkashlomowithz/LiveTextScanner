@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CaptureResultView: View {
     @State private var viewModel: CaptureViewModel
+    @State private var toast: ToastContent?
     let onSave: () -> Void
     @Environment(\.dismiss) private var dismiss
 
@@ -30,17 +31,39 @@ struct CaptureResultView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Dismiss") { dismiss() }
+                    Button("Close", systemImage: "xmark") { dismiss() }
+                        .labelStyle(.iconOnly)
                 }
+                
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button("Copy", systemImage: "doc.on.doc", action: viewModel.copyToClipboard)
-                    ShareLink(item: viewModel.capture.fullText)
-                    Button("Save", systemImage: "square.and.arrow.down") {
-                        onSave()
-                        dismiss()
+                    
+                    ShareLink(item: viewModel.capture.fullText) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                    .labelStyle(.iconOnly)
+                    
+                    Menu {
+                        Button("Copy to Clipboard", systemImage: "doc.on.doc") {
+                            viewModel.copyToClipboard()
+                            toast = ToastContent(
+                                message: "Copied to clipboard",
+                                systemImage: "doc.on.doc.fill"
+                            )
+                        }
+                        Button("Save to History", systemImage: "square.and.arrow.down") {
+                            onSave()
+                            toast = ToastContent(
+                                message: "Saved to history",
+                                systemImage: "checkmark.circle.fill"
+                            )
+                        }
+                    } label: {
+                        Label("More", systemImage: "ellipsis.circle")
+                            .labelStyle(.iconOnly)
                     }
                 }
             }
+            .toast($toast)
         }
     }
 }

@@ -39,14 +39,17 @@ final class CameraViewModel {
     }
 
     func startScanning() async {
+        // `start()` recreates the live-regions stream, so it must run before
+        // we capture a reference to iterate.
+        let stream = await liveScanUseCase.start()
         let liveRegions = liveScanUseCase.liveRegions
+
         liveRegionsTask = Task { [weak self] in
             for await regions in liveRegions {
                 self?.currentRegions = regions
             }
         }
 
-        let stream = await liveScanUseCase.start()
         scanTask = Task { [weak self] in
             for await capture in stream {
                 self?.currentCapture = capture
@@ -66,6 +69,7 @@ final class CameraViewModel {
     func captureCurrentFrame() {
         guard !currentRegions.isEmpty else { return }
         capturedResult = ScanCapture(regions: currentRegions)
+        stopScanning()
     }
 
     func saveCapture(_ capture: ScanCapture) async {

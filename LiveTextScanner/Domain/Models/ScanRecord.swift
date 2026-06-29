@@ -12,7 +12,7 @@ import SwiftData
 final class ScanRecord {
     var id: UUID
     /// Sequential capture number assigned at save time. Stable across launches and shown to the user.
-    var number: Int
+    var number: Int = 0
     var date: Date
     var text: String
     var thumbnailData: Data?

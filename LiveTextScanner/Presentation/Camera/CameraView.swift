@@ -23,10 +23,12 @@ struct CameraView: View {
             overlayLayer
             controlsLayer
         }
-        .ignoresSafeArea()
         .task { await viewModel.startScanning() }
         .onDisappear(perform: viewModel.stopScanning)
-        .sheet(item: $vm.capturedResult) { capture in
+        .sheet(
+            item: $vm.capturedResult,
+            onDismiss: { Task { await viewModel.startScanning() } }
+        ) { capture in
             CaptureResultView(
                 viewModel: CaptureViewModel(capture: capture),
                 onSave: { Task { await viewModel.saveCapture(capture) } }
@@ -58,27 +60,40 @@ struct CameraView: View {
 
     private var controlsLayer: some View {
         VStack {
+            HStack(alignment: .top) {
+                ScanStatusBadge(detectionCount: viewModel.currentRegions.count)
+                Spacer()
+                NavigationLink(value: AppRoute.history) {
+                    Label("History", systemImage: "clock")
+                        .labelStyle(.iconOnly)
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .padding(10)
+                        .glassCircle()
+                }
+                .simultaneousGesture(TapGesture().onEnded {
+                    viewModel.stopScanning()
+                })
+            }
             Spacer()
-            Button("Capture Text", systemImage: "camera.fill", action: viewModel.captureCurrentFrame)
-                .labelStyle(.iconOnly)
-                .font(.system(size: 32, weight: .medium))
-                .foregroundStyle(.white)
-                .padding(24)
-                .background(.ultraThinMaterial, in: Circle())
-                .padding(.bottom, 48)
-                .disabled(viewModel.currentRegions.isEmpty)
-                .opacity(viewModel.currentRegions.isEmpty ? 0.5 : 1)
+            ShutterButton(
+                isEnabled: !viewModel.currentRegions.isEmpty,
+                action: viewModel.captureCurrentFrame
+            )
         }
+        .padding()
     }
 }
 
 #Preview {
-    CameraView(viewModel: CameraViewModel(
-        liveScanUseCase: LiveScanUseCase(
-            frameProvider: MockCameraFrameProvider(),
-            recognizer: MockTextRecognizer(),
-            deduplicator: SimilarityDeduplicator()
-        ),
-        captureUseCase: CaptureTextUseCase(repository: InMemoryStore())
-    ))
+    CameraView(
+        viewModel: CameraViewModel(
+            liveScanUseCase: LiveScanUseCase(
+                frameProvider: MockCameraFrameProvider(),
+                recognizer: MockTextRecognizer(),
+                deduplicator: SimilarityDeduplicator()
+            ),
+            captureUseCase: CaptureTextUseCase(repository: InMemoryStore())
+        )
+    )
 }

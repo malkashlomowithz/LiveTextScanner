@@ -12,19 +12,16 @@ import CoreVideo
 /// Emits pixel buffers on demand so unit tests and SwiftUI Previews run without camera hardware.
 final class MockCameraFrameProvider: CameraFrameProviderProtocol, @unchecked Sendable {
 
-    nonisolated let frames: AsyncStream<CVPixelBuffer>
     private(set) var isRunning = false
-
     private var continuation: AsyncStream<CVPixelBuffer>.Continuation?
 
-    init() {
-        let (stream, continuation) = AsyncStream<CVPixelBuffer>.makeStream()
-        self.frames = stream
-        self.continuation = continuation
-    }
+    init() {}
 
-    func start() async {
+    func start() async -> AsyncStream<CVPixelBuffer> {
+        let (stream, continuation) = AsyncStream<CVPixelBuffer>.makeStream()
+        self.continuation = continuation
         isRunning = true
+        return stream
     }
 
     func stop() {

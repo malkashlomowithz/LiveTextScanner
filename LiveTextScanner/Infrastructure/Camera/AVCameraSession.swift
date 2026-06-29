@@ -15,30 +15,34 @@ actor AVCameraSession: CameraFrameProviderProtocol {
     /// Exposed for the camera preview layer only. All configuration happens within actor isolation.
     nonisolated let captureSession = AVCaptureSession()
     private let videoOutput = AVCaptureVideoDataOutput()
-    private let captureDelegate: FrameCaptureDelegate
+    private let captureDelegate = FrameCaptureDelegate()
+    private var hasConfigured = false
 
-    /// Continuous stream of pixel buffers delivered by the camera.
-    nonisolated let frames: AsyncStream<CVPixelBuffer>
+    init() {}
 
-    init() {
-        let delegate = FrameCaptureDelegate()
+    func start() async -> AsyncStream<CVPixelBuffer> {
+        if !hasConfigured {
+            configure()
+            hasConfigured = true
+        }
+
+        // A fresh stream is created on every start so the consumer always
+        // receives a usable AsyncSequence — AsyncStream is single-use.
         let (stream, continuation) = AsyncStream<CVPixelBuffer>.makeStream()
-        delegate.continuation = continuation
-        self.captureDelegate = delegate
-        self.frames = stream
-    }
+        captureDelegate.continuation = continuation
 
-    func start() async {
-        guard !captureSession.isRunning else { return }
-        configure()
-        // startRunning() blocks briefly. Safe here because AVCameraSession
-        // is not @MainActor, so it does not freeze the UI.
-        captureSession.startRunning()
+        if !captureSession.isRunning {
+            // startRunning() blocks briefly. Safe here because AVCameraSession
+            // is not @MainActor, so it does not freeze the UI.
+            captureSession.startRunning()
+        }
+        return stream
     }
 
     func stop() {
         captureSession.stopRunning()
         captureDelegate.continuation?.finish()
+        captureDelegate.continuation = nil
     }
 
     // MARK: - Private
