@@ -23,17 +23,17 @@ final class SettingsUITests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Sheet lifecycle
+    // MARK: - Navigation lifecycle
 
-    func testSettingsSheetOpens() {
+    func testSettingsScreenIsReachable() {
         app.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Language Settings"].waitForExistence(timeout: 3))
     }
 
-    func testSettingsSheetDismissesOnDone() {
+    func testBackNavigationReturnsToCameraScreen() {
         app.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Language Settings"].waitForExistence(timeout: 3))
-        app.buttons["Done"].tap()
+        app.navigationBars.buttons.firstMatch.tap()
         XCTAssertFalse(app.navigationBars["Language Settings"].waitForExistence(timeout: 2))
     }
 

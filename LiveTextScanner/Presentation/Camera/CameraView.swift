@@ -11,7 +11,6 @@ struct CameraView: View {
     @State private var viewModel: CameraViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(AppDependencyContainer.self) private var container
-    @State private var showingSettings = false
 
     init(viewModel: CameraViewModel) {
         _viewModel = State(wrappedValue: viewModel)
@@ -35,14 +34,6 @@ struct CameraView: View {
                 viewModel: CaptureViewModel(capture: capture),
                 onSave: { Task { await viewModel.saveCapture(capture) } }
             )
-        }
-        .sheet(isPresented: $showingSettings, onDismiss: {
-            Task { await viewModel.startScanning() }
-        }) {
-            SettingsView(settings: container.languageSettings)
-        }
-        .onChange(of: showingSettings) { _, isShowing in
-            if isShowing { viewModel.stopScanning() }
         }
         .alert("Scan Error", isPresented: $vm.showingError) {
             Button("OK") { vm.errorMessage = nil }
@@ -73,12 +64,17 @@ struct CameraView: View {
             HStack(alignment: .top) {
                 ScanStatusBadge(detectionCount: viewModel.currentRegions.count)
                 Spacer()
-                Button("Settings", systemImage: "gear") { showingSettings = true }
-                    .labelStyle(.iconOnly)
-                    .font(.title3)
-                    .foregroundStyle(.white)
-                    .padding(10)
-                    .glassCircle()
+                NavigationLink(value: AppRoute.settings) {
+                    Label("Settings", systemImage: "gear")
+                        .labelStyle(.iconOnly)
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .padding(10)
+                        .glassCircle()
+                }
+                .simultaneousGesture(TapGesture().onEnded {
+                    viewModel.stopScanning()
+                })
 
                 NavigationLink(value: AppRoute.history) {
                     Label("History", systemImage: "clock")

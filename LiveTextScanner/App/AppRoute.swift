@@ -8,4 +8,5 @@
 /// Destinations reachable via the root `NavigationStack`.
 enum AppRoute: Hashable {
     case history
+    case settings
 }

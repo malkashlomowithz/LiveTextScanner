@@ -17,6 +17,8 @@ struct ContentView: View {
                     switch route {
                     case .history:
                         HistoryView(viewModel: container.historyViewModel)
+                    case .settings:
+                        SettingsView(settings: container.languageSettings)
                     }
                 }
         }
