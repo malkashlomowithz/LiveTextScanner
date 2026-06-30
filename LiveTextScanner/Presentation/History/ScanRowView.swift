@@ -23,6 +23,12 @@ struct ScanRowView: View {
                         .font(.caption2)
                     Text(record.date, format: .dateTime.day().month().year().hour().minute())
                         .font(.caption)
+                    if let code = record.detectedLanguages.first,
+                       let name = Locale.current.localizedString(forLanguageCode: code) {
+                        Text("·")
+                        Text(name)
+                            .font(.caption)
+                    }
                 }
                 .foregroundStyle(.secondary)
             }

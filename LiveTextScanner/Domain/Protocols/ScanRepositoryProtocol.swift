@@ -14,7 +14,7 @@ protocol ScanRepositoryProtocol {
     func save(
         text: String,
         date: Date,
-        language: String?,
+        detectedLanguages: [String],
         sourceRegions: [String],
         thumbnailData: Data?
     ) async throws

@@ -7,6 +7,28 @@
 
 import SwiftUI
 
+private struct DetectedLanguagesRow: View {
+    let languages: [String]
+
+    var body: some View {
+        ScrollView(.horizontal) {
+            HStack {
+                Image(systemName: "globe")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                ForEach(languages, id: \.self) { code in
+                    Text(Locale.current.localizedString(forLanguageCode: code) ?? code)
+                        .font(.caption)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(.secondary.opacity(0.12), in: .capsule)
+                }
+            }
+        }
+        .scrollIndicators(.hidden)
+    }
+}
+
 struct CaptureResultView: View {
     @State private var viewModel: CaptureViewModel
     @State private var toast: ToastContent?
@@ -21,11 +43,18 @@ struct CaptureResultView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                Text(viewModel.capture.fullText)
-                    .font(.body)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .textSelection(.enabled)
+                VStack(alignment: .leading, spacing: 0) {
+                    if !viewModel.capture.detectedLanguages.isEmpty {
+                        DetectedLanguagesRow(languages: viewModel.capture.detectedLanguages)
+                            .padding(.horizontal)
+                            .padding(.top, 12)
+                    }
+                    Text(viewModel.capture.fullText)
+                        .font(.body)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .textSelection(.enabled)
+                }
             }
             .navigationTitle("Captured Text")
             .navigationBarTitleDisplayMode(.inline)

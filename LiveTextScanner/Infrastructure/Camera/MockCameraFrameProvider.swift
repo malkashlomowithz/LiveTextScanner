@@ -5,7 +5,6 @@
 //  Created by Malky on 28/06/2026.
 //
 
-#if DEBUG
 import CoreVideo
 
 /// Test double for `CameraFrameProviderProtocol`.
@@ -35,4 +34,3 @@ final class MockCameraFrameProvider: CameraFrameProviderProtocol, @unchecked Sen
         continuation?.yield(pixelBuffer)
     }
 }
-#endif

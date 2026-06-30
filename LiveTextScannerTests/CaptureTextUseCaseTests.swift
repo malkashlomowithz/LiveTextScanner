@@ -25,17 +25,23 @@ struct CaptureTextUseCaseTests {
         #expect(records[0].text == "Hello World")
     }
 
-    @Test("Execute persists the language tag")
+    @Test("Execute derives and persists detected languages from regions")
     @MainActor
-    func savesLanguageTag() async throws {
+    func savesDetectedLanguages() async throws {
         let store = InMemoryStore()
         let useCase = CaptureTextUseCase(repository: store)
-        let capture = ScanCapture.make(text: "Bonjour")
+        let capture = ScanCapture(regions: [
+            .make(text: "Bonjour", detectedLanguage: "fr"),
+            .make(text: "monde", detectedLanguage: "fr"),
+            .make(text: "hello", detectedLanguage: "en")
+        ])
 
-        try await useCase.execute(capture, language: "fr")
+        try await useCase.execute(capture)
 
         let records = try await store.fetchAll()
-        #expect(records[0].language == "fr")
+        // "fr" appears in 2 regions, "en" in 1 — so "fr" must be first.
+        #expect(records[0].detectedLanguages.first == "fr")
+        #expect(records[0].detectedLanguages.contains("en"))
     }
 
     @Test("Execute persists source regions")

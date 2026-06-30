@@ -7,6 +7,7 @@
 
 import Vision
 import CoreVideo
+import NaturalLanguage
 
 /// Concrete OCR engine backed by Apple's Vision framework.
 /// Swap this out by supplying a different `TextRecognitionProtocol` conformance — no other files change.
@@ -19,6 +20,8 @@ final class VisionTextRecognizer: TextRecognitionProtocol, @unchecked Sendable {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
+        // When no languages are pinned, let Vision auto-select the best model per frame.
+        request.automaticallyDetectsLanguage = recognitionLanguages.isEmpty
         if !recognitionLanguages.isEmpty {
             request.recognitionLanguages = recognitionLanguages
         }
@@ -27,9 +30,19 @@ final class VisionTextRecognizer: TextRecognitionProtocol, @unchecked Sendable {
         try handler.perform([request])
 
         let observations = request.results as? [VNRecognizedTextObservation] ?? []
+        // One NLLanguageRecognizer instance per call; reset() between observations.
+        let nlRecognizer = NLLanguageRecognizer()
+
         return observations.compactMap { observation in
             guard let candidate = observation.topCandidates(1).first else { return nil }
-            return TextRegion(text: candidate.string, boundingBox: observation.boundingBox)
+            nlRecognizer.reset()
+            nlRecognizer.processString(candidate.string)
+            let language = nlRecognizer.dominantLanguage?.rawValue
+            return TextRegion(
+                text: candidate.string,
+                boundingBox: observation.boundingBox,
+                detectedLanguage: language
+            )
         }
     }
 }

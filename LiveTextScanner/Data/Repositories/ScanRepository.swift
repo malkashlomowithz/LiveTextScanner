@@ -21,7 +21,7 @@ final class ScanRepository: ScanRepositoryProtocol {
     func save(
         text: String,
         date: Date,
-        language: String?,
+        detectedLanguages: [String],
         sourceRegions: [String],
         thumbnailData: Data?
     ) async throws {
@@ -36,7 +36,7 @@ final class ScanRepository: ScanRepositoryProtocol {
             date: date,
             text: text,
             thumbnailData: thumbnailData,
-            language: language,
+            detectedLanguages: detectedLanguages,
             sourceRegions: sourceRegions
         )
         context.insert(record)

@@ -18,7 +18,7 @@ final class InMemoryStore: ScanRepositoryProtocol {
     func save(
         text: String,
         date: Date,
-        language: String?,
+        detectedLanguages: [String],
         sourceRegions: [String],
         thumbnailData: Data?
     ) async throws {
@@ -29,7 +29,7 @@ final class InMemoryStore: ScanRepositoryProtocol {
                 date: date,
                 text: text,
                 thumbnailData: thumbnailData,
-                language: language,
+                detectedLanguages: detectedLanguages,
                 sourceRegions: sourceRegions
             )
         )
@@ -47,5 +47,25 @@ final class InMemoryStore: ScanRepositoryProtocol {
 
     func delete(id: UUID) async throws {
         records.removeAll { $0.id == id }
+    }
+
+    /// Synchronously populates the store with deterministic sample data for UI tests.
+    func seedForUITesting() {
+        records = [
+            ScanRecord(
+                number: 1,
+                date: .now,
+                text: "Hello World from UI test",
+                detectedLanguages: ["en"],
+                sourceRegions: ["Hello World from UI test"]
+            ),
+            ScanRecord(
+                number: 2,
+                date: .now.addingTimeInterval(-3600),
+                text: "Bonjour le monde",
+                detectedLanguages: ["fr"],
+                sourceRegions: ["Bonjour le monde"]
+            ),
+        ]
     }
 }

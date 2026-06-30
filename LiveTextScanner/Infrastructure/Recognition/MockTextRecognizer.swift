@@ -5,7 +5,6 @@
 //  Created by Malky on 28/06/2026.
 //
 
-#if DEBUG
 import CoreVideo
 
 /// Test double for `TextRecognitionProtocol`.
@@ -28,4 +27,3 @@ final class MockTextRecognizer: TextRecognitionProtocol, @unchecked Sendable {
         return stubbedResponses[responseIndex]
     }
 }
-#endif

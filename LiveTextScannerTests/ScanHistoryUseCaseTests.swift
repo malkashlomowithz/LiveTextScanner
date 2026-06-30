@@ -18,7 +18,7 @@ struct ScanHistoryUseCaseTests {
     private func makeUseCase(seeded texts: [String] = []) async throws -> (ScanHistoryUseCase, InMemoryStore) {
         let store = InMemoryStore()
         for text in texts {
-            try await store.save(text: text, date: .now, language: nil, sourceRegions: [], thumbnailData: nil)
+            try await store.save(text: text, date: .now, detectedLanguages: [], sourceRegions: [], thumbnailData: nil)
         }
         return (ScanHistoryUseCase(repository: store), store)
     }

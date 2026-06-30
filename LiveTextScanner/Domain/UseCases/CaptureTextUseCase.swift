@@ -16,13 +16,12 @@ final class CaptureTextUseCase {
         self.repository = repository
     }
 
-    /// Saves `capture` to the repository.
-    /// - Parameter language: BCP-47 tag of the dominant language detected, if known.
-    func execute(_ capture: ScanCapture, language: String? = nil) async throws {
+    /// Saves `capture` to the repository, deriving detected languages from its regions.
+    func execute(_ capture: ScanCapture) async throws {
         try await repository.save(
             text: capture.fullText,
             date: capture.date,
-            language: language,
+            detectedLanguages: capture.detectedLanguages,
             sourceRegions: capture.regions.map(\.text),
             thumbnailData: nil
         )

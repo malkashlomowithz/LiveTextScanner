@@ -16,8 +16,8 @@ final class ScanRecord {
     var date: Date
     var text: String
     var thumbnailData: Data?
-    /// BCP-47 language tag, e.g. "en", "fr", "he"
-    var language: String?
+    /// BCP-47 language tags detected in this capture, sorted by frequency (most common first).
+    var detectedLanguages: [String] = []
     /// Raw per-line strings from the frame, before deduplication
     var sourceRegions: [String]
 
@@ -27,7 +27,7 @@ final class ScanRecord {
         date: Date = .now,
         text: String,
         thumbnailData: Data? = nil,
-        language: String? = nil,
+        detectedLanguages: [String] = [],
         sourceRegions: [String] = []
     ) {
         self.id = id
@@ -35,7 +35,7 @@ final class ScanRecord {
         self.date = date
         self.text = text
         self.thumbnailData = thumbnailData
-        self.language = language
+        self.detectedLanguages = detectedLanguages
         self.sourceRegions = sourceRegions
     }
 }

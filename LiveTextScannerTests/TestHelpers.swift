@@ -12,8 +12,12 @@ import CoreVideo
 // MARK: - TextRegion factory
 
 extension TextRegion {
-    static func make(text: String, boundingBox: CGRect = CGRect(x: 0, y: 0, width: 0.5, height: 0.1)) -> TextRegion {
-        TextRegion(text: text, boundingBox: boundingBox)
+    static func make(
+        text: String,
+        boundingBox: CGRect = CGRect(x: 0, y: 0, width: 0.5, height: 0.1),
+        detectedLanguage: String? = nil
+    ) -> TextRegion {
+        TextRegion(text: text, boundingBox: boundingBox, detectedLanguage: detectedLanguage)
     }
 }
 
