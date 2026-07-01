@@ -102,8 +102,6 @@ Covers:
 
 ## Architecture
 
-The project follows a strict layered architecture. See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the full breakdown. In brief:
-
 ```
 Presentation  →  Domain (Use Cases + Models)  →  Data / Infrastructure
 ```
